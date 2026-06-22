@@ -281,7 +281,7 @@ function memasang_domain() {
     clear
     print_install "Please Set Your Domain"
     echo -e "${BIWhite}=======================================${NC}"
-    echo -e "${LIME}            Setup Domain Menu         ${NC}"
+    echo -e "${LIME}           Setup Domain Menu          ${NC}"
     echo -e "${BIWhite}---------------------------------------${NC}"
     echo -e "${LIME}[${BIWhite}01${LIME}]${BIWhite} Using Your Own Domain${NC}"
     echo -e "${LIME}[${BIWhite}02${LIME}]${BIWhite} Using Default Domain From Script${NC}"

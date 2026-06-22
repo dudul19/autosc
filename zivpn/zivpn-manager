@@ -13,7 +13,7 @@ LIGHT_GREEN='\033[1;32m'
 NC='\033[0m' # No Color
 
 # ─── License Info ───
-LICENSE_URL="https://raw.githubusercontent.com/dudul19/autosc/main/ip"
+LICENSE_URL="https://raw.githubusercontent.com/dudul19/autosc/main/zivpn/ip"
 LICENSE_INFO_FILE="/etc/zivpn/.license_info"
 CONFIG_DIR="/etc/zivpn"
 TELEGRAM_CONF="${CONFIG_DIR}/telegram.conf"
@@ -31,7 +31,6 @@ function send_telegram_notification() {
     if [ ! -f "$TELEGRAM_CONF" ]; then
         return 1
     fi
-    # shellcheck source=/etc/zivpn/telegram.conf
     source "$TELEGRAM_CONF"
 
     if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
