@@ -1,0 +1,45 @@
+#!/bin/bash
+clear
+echo "======================================"
+echo " ❖ Warp Menu"
+echo "--------------------------------------"
+echo " 1.  Install Warp Client"
+echo " 2.  Uninstall Warp Client"
+echo " 3.  Restart Warp Client"
+echo " 4.  Activate Warp Proxy Mode"
+echo " 5.  Deactivate Warp Proxy Mode"
+echo " 6.  Warp Wireguard"
+echo " 7.  Warp IPv4"
+echo " 8.  Warp IPv6"
+echo " 9.  Warp Ipv4 & IPv6"
+echo " 10. Warp Routing"
+echo " 11. Restart Warp Wireguard"
+echo " 12. Stop Warp Wireguard"
+echo " 13. Warp Status"
+echo " 14. Warp Version"
+echo " 15. Warp Help"
+echo " 16. Warp Chinese Menu"
+echo " x.  Exit"
+echo "======================================"
+echo
+read -p "Enter your option [1-16 or x] : " opt
+case $opt in
+1) clear ; bash <(curl -fsSL git.io/warp.sh) install ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+2) clear ; bash <(curl -fsSL git.io/warp.sh) uninstall ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+3) clear ; bash <(curl -fsSL git.io/warp.sh) restart ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+4) clear ; bash <(curl -fsSL git.io/warp.sh) proxy ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+5) clear ; bash <(curl -fsSL git.io/warp.sh) unproxy ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+6) clear ; bash <(curl -fsSL git.io/warp.sh) wg ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+7) clear ; bash <(curl -fsSL git.io/warp.sh) wg4 ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+8) clear ; bash <(curl -fsSL git.io/warp.sh) wg6 ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+9) clear ; bash <(curl -fsSL git.io/warp.sh) wgd ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+10) clear ; bash <(curl -fsSL git.io/warp.sh) wgx ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+11) clear ; bash <(curl -fsSL git.io/warp.sh) rwg ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+12) clear ; bash <(curl -fsSL git.io/warp.sh) dwg ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+13) clear ; bash <(curl -fsSL git.io/warp.sh) status ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+14) clear ; bash <(curl -fsSL git.io/warp.sh) version ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+15) clear ; bash <(curl -fsSL git.io/warp.sh) help ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+16) clear ; bash <(curl -fsSL git.io/warp.sh) menu ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+x) clear ; menu ;;
+*) echo "You pressed it wrong!" ; sleep 1 ; m-warp ;;
+esac

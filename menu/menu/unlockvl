@@ -1,0 +1,86 @@
+#!/bin/bash
+clear
+LOCK_FILE="/etc/user_locks.db"
+XRAY_CONFIG="/etc/xray/config.json"
+BACKUP_DIR="/etc/xray/backups"
+
+[[ ! -f $LOCK_FILE ]] && touch $LOCK_FILE
+[[ ! -d $BACKUP_DIR ]] && mkdir -p $BACKUP_DIR
+
+reload_services() {
+    systemctl restart xray >/dev/null 2>&1
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-vless
+}
+
+# Function to modify Xray configuration file for vless
+modify_xray_config() {
+    local action="$1"
+    local user="$2"
+    local protocol="vless"
+    local marker="#& $user"
+
+    if [[ $action == "lock" ]]; then
+        cp $XRAY_CONFIG "$BACKUP_DIR/config.json.bak"
+        sed -i "/^${marker}/,/^},{/d" $XRAY_CONFIG
+        clear
+        echo "======================================"
+        echo " ❖ Lock Vless Account"
+        echo "--------------------------------------"
+        echo " User '${user}' on protocol '${protocol}' has been locked."
+    elif [[ $action == "unlock" ]]; then
+        if [[ -f "$BACKUP_DIR/config.json.bak" ]]; then
+            cp "$BACKUP_DIR/config.json.bak" $XRAY_CONFIG
+            clear
+            echo "======================================"
+            echo " ❖ Unlock Vless Account"
+            echo "--------------------------------------"
+            echo -e " User '${user}' on protocol '${protocol}' has been restored from the backup"
+        else
+            clear
+            echo "======================================"
+            echo " ❖ Unlock Vless Account"
+            echo "--------------------------------------"
+            echo " Backup not found! Failed to unlock user '${user}'"
+        fi
+    fi
+}
+
+unlock_user() {
+    echo "======================================"
+    echo " ❖ Unlock Vless Account"
+    echo "--------------------------------------"
+
+    mapfile -t locked_users < <(grep "^vless:" "$LOCK_FILE" | cut -d':' -f2)
+
+    if [[ ${#locked_users[@]} -eq 0 ]]; then
+        echo " No users are currently locked"
+        echo "======================================"
+        echo
+        read -n 1 -s -r -p "Press any key to back"
+        m-vless
+        return
+    fi
+
+    for i in "${!locked_users[@]}"; do
+        echo " $((i+1)). ${locked_users[$i]}"
+    done
+
+    echo "======================================"
+    echo
+    read -p "Enter number : " selected
+
+    if ! [[ "$selected" =~ ^[0-9]+$ ]] || (( selected < 1 || selected > ${#locked_users[@]} )); then
+        echo "Invalid selection"
+        return
+    fi
+
+    user="${locked_users[$((selected-1))]}"
+    sed -i "/^vless:${user}$/d" "$LOCK_FILE"
+    modify_xray_config "unlock" "$user"
+    reload_services
+}
+
+unlock_user

@@ -1,0 +1,121 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+    TODAY_DATE=$(date +'%Y-%m-%d')
+    AUTHORIZED_ENTRY=$(curl -sS ${LICENSE} | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+CORRECT_PASSWORD="majenang15@#$"
+echo "======================================"
+echo " ❖ Developer Verification"
+echo "--------------------------------------"
+read -s -p " Enter Password : " INPUT_PASS
+echo 
+
+if [[ "$INPUT_PASS" != "$CORRECT_PASSWORD" ]]; then
+    clear
+    echo "======================================"
+    echo " ❖ Developer Verification"
+    echo "--------------------------------------"
+    echo " Incorrect: Sorry LOSER!"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-regis
+    exit 1
+fi
+claer
+
+dateFromServer=$(curl -sI --insecure https://google.com/ | grep -i '^date:' | sed -e 's/Date: //')
+biji=$(date +"%Y-%m-%d" -d "$dateFromServer")
+clear
+
+fun_bar() {
+    CMD[0]="$1"
+    CMD[1]="$2"
+    (
+        [[ -e $HOME/fim ]] && rm $HOME/fim
+        ${CMD[0]} -y >/dev/null 2>&1
+        ${CMD[1]} -y >/dev/null 2>&1
+        touch $HOME/fim
+    ) >/dev/null 2>&1 &
+    tput civis
+    echo -ne "Please Wait Loading"
+    while true; do
+        for ((i = 0; i < 15; i++)); do
+            echo -ne "#"
+            sleep 0.1s
+        done
+        [[ -e $HOME/fim ]] && rm $HOME/fim && break
+        echo
+        sleep 1s
+        tput cuu1
+        tput dl1
+        echo -ne "Please Wait Loading"
+    done
+    echo -e "OK !"
+    tput cnorm
+}
+
+clear
+echo "======================================"
+echo " ❖ Delete Bot Regis IP"
+echo "--------------------------------------"
+
+file_bot() {
+    sleep 2
+    systemctl stop vermilion
+    rm -rf /root/vermilion.sh
+    cd /usr/bin || exit
+    rm -rf vermilion vermilion2 vermilion3 vermilion4 vermilion5 vermilion.zip vermilion.zip.1 vermilion.zip.2 vermilion.zip.3 vermilion.zip.4 vermilion.zip.5 vermilion2.zip vermilion2.zip.1 vermilion2.zip.2 vermilion2.zip.3 vermilion3.zip vermilion3.zip.1 vermilion3.zip.2 vermilion3.zip.3
+    
+}
+
+fun_bar 'bot_file'
+clear
+echo "======================================"
+echo " ❖ Delete Bot Regis IP"
+echo "--------------------------------------"
+echo " ❖ Successfully Delete Bot Regis IP"
+echo "--------------------------------------"
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-regis

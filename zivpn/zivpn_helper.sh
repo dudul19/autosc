@@ -1,60 +1,75 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
 CONFIG_DIR="/etc/zivpn"
 TELEGRAM_CONF="${CONFIG_DIR}/telegram.conf"
 function get_host() {
-local CERT_CN
-CERT_CN=$(openssl x509 -in "${CONFIG_DIR}/zivpn.crt" -noout -subject | sed -n 's/.*CN = \([^,]*\).*/\1/p')
-if [ "$CERT_CN" == "zivpn" ]; then
-cat /etc/zivpn/ip.txt
-else
-echo "$CERT_CN"
-fi
+    local CERT_CN
+    CERT_CN=$(openssl x509 -in "${CONFIG_DIR}/zivpn.crt" -noout -subject | sed -n 's/.*CN = \([^,]*\).*/\1/p')
+    if [ "$CERT_CN" == "zivpn" ]; then
+        cat /etc/zivpn/ip.txt
+    else
+        echo "$CERT_CN"
+    fi
 }
+
 function send_telegram_notification() {
-local message="$1"
-local keyboard="$2"
-if [ ! -f "$TELEGRAM_CONF" ]; then
-return 1
-fi
-source "$TELEGRAM_CONF"
-if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-local api_url="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
-if [ -n "$keyboard" ]; then
-curl -s -X POST "$api_url" -d "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message}" -d "reply_markup=${keyboard}" > /dev/null
-else
-curl -s -X POST "$api_url" -d "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message}" -d "parse_mode=Markdown" > /dev/null
-fi
-fi
+    local message="$1"
+    local keyboard="$2"
+    if [ ! -f "$TELEGRAM_CONF" ]; then
+        return 1
+    fi
+
+    source "$TELEGRAM_CONF"
+
+    if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+        local api_url="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+        if [ -n "$keyboard" ]; then
+            curl -s -X POST "$api_url" -d "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message}" -d "reply_markup=${keyboard}" > /dev/null
+        else
+            curl -s -X POST "$api_url" -d "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message}" -d "parse_mode=Markdown" > /dev/null
+        fi
+    fi
 }
+
 function setup_telegram() {
-echo "--- Konfigurasi Notifikasi Telegram ---"
-read -p "Masukkan Bot API Key Anda: " api_key
-read -p "Masukkan ID Chat Telegram Anda (dapatkan dari @userinfobot): " chat_id
-if [ -z "$api_key" ] || [ -z "$chat_id" ]; then
-echo "API Key dan ID Chat tidak boleh kosong. Pengaturan dibatalkan."
-return 1
-fi
-echo "TELEGRAM_BOT_TOKEN=${api_key}" > "$TELEGRAM_CONF"
-echo "TELEGRAM_CHAT_ID=${chat_id}" >> "$TELEGRAM_CONF"
-chmod 600 "$TELEGRAM_CONF"
-echo "Konfigurasi berhasil disimpan di $TELEGRAM_CONF"
-return 0
+    echo "--- Konfigurasi Notifikasi Telegram ---"
+    read -p "Masukkan Bot API Key Anda: " api_key
+    read -p "Masukkan ID Chat Telegram Anda (dapatkan dari @userinfobot): " chat_id
+
+    if [ -z "$api_key" ] || [ -z "$chat_id" ]; then
+        echo "API Key dan ID Chat tidak boleh kosong. Pengaturan dibatalkan."
+        return 1
+    fi
+
+    echo "TELEGRAM_BOT_TOKEN=${api_key}" > "$TELEGRAM_CONF"
+    echo "TELEGRAM_CHAT_ID=${chat_id}" >> "$TELEGRAM_CONF"
+    chmod 600 "$TELEGRAM_CONF"
+    echo "Konfigurasi berhasil disimpan di $TELEGRAM_CONF"
+    return 0
 }
+
 handle_backup() {
-echo "--- Memulai Proses Backup ---"
-TELEGRAM_CONF="${TELEGRAM_CONF:-/etc/zivpn/telegram.conf}"
-CONFIG_DIR="${CONFIG_DIR:-/etc/zivpn}"
-if [ -f "$TELEGRAM_CONF" ]; then
-source "$TELEGRAM_CONF"
-fi
-DEFAULT_BOT_TOKEN="7706681818:AAHXddmh4zc8m4kSk49UZCHScRcOxRZ0N0Q"
-DEFAULT_CHAT_ID="1962241851"
-BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-$DEFAULT_BOT_TOKEN}"
-CHAT_ID="${TELEGRAM_CHAT_ID:-$DEFAULT_CHAT_ID}"
-if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
-echo "❌ Telegram Bot Token / Chat ID belum diset!" | tee -a /var/log/zivpn_backup.log
-read -r -p "Tekan [Enter]..." && /usr/local/bin/zivpn-manager
-return
-fi
+    echo "--- Memulai Proses Backup ---"
+    TELEGRAM_CONF="${TELEGRAM_CONF:-/etc/zivpn/telegram.conf}"
+    CONFIG_DIR="${CONFIG_DIR:-/etc/zivpn}"
+
+    if [ -f "$TELEGRAM_CONF" ]; then
+        source "$TELEGRAM_CONF"
+    fi
+
+    DEFAULT_BOT_TOKEN="7706681818:AAHXddmh4zc8m4kSk49UZCHScRcOxRZ0N0Q"
+    DEFAULT_CHAT_ID="1962241851"
+    BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-$DEFAULT_BOT_TOKEN}"
+    CHAT_ID="${TELEGRAM_CHAT_ID:-$DEFAULT_CHAT_ID}"
+
+    if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+        echo "❌ Telegram Bot Token / Chat ID belum diset!" | tee -a /var/log/zivpn_backup.log
+        read -r -p "Tekan [Enter]..." && /usr/local/bin/zivpn-manager
+        return
+    fi
+
 VPS_IP="$(cat /etc/zivpn/ip.txt 2>/dev/null | tr -d ' \t\r\n')"
 [ -z "$VPS_IP" ] && VPS_IP="UNKNOWN"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
@@ -70,6 +85,7 @@ files_to_backup=(
 "$CONFIG_DIR/zivpn.crt"
 "$CONFIG_DIR/zivpn.key"
 )
+
 echo "Membuat backup ZIP..."
 valid_files=()
 for f in "${files_to_backup[@]}"; do

@@ -1,0 +1,122 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+    TODAY_DATE=$(date +'%Y-%m-%d')
+    AUTHORIZED_ENTRY=$(curl -sS ${LICENSE} | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+
+CORRECT_PASSWORD="majenang15@#$"
+echo "======================================"
+echo " ❖ Developer Verification"
+echo "--------------------------------------"
+read -s -p " Enter Password : " INPUT_PASS
+echo 
+
+if [[ "$INPUT_PASS" != "$CORRECT_PASSWORD" ]]; then
+    clear
+    echo "======================================"
+    echo " ❖ Developer Verification"
+    echo "--------------------------------------"
+    echo " Incorrect: Sorry LOSER!"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-regis
+    exit 1
+fi
+
+clear
+cd /etc/systemd/system/
+rm -rf vermilion.service
+cd
+cd /usr/bin
+rm -rf vermilion
+rm -rf vermilion.zip
+sudo apt update
+sudo apt install pip
+apt install unzip
+apt install neofetch -y
+cd /usr/bin
+wget ${REPO}bot/vermilion.zip
+unzip -P miqdad12 vermilion.zip
+chmod +x /usr/bin/vermilion/*
+rm -rf vermilion.zip
+clear
+pip3 install python-telegram-bot==13.7
+pip3 install requests
+cd
+clear
+
+echo "======================================"
+echo " ❖ Setup Bot Regist IP"
+echo "--------------------------------------"
+echo
+read -p " Enter Telegram ID : " admin
+echo -e ''$admin'' >> /usr/bin/vermilion/lite.txt
+echo "--------------------------------------"
+clear
+
+cat > /etc/systemd/system/vermilion.service << END
+[Unit]
+Description=Simple vermilion - @vermilion
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/bin/vermilion
+ExecStart=/usr/bin/python3  daftarip.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+END
+
+systemctl start vermilion 
+systemctl enable vermilion
+systemctl restart vermilion
+cd /root
+rm -rf bot.sh
+rm -rf bot.sh.1
+clear
+echo -e "Successfully Install Bot Regis IP, type /start on your bot "
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-regis

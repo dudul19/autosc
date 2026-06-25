@@ -1,3 +1,7 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
 set -euo pipefail
 CACHE_DIR="/etc/zivpn"
 IP_FILE="$CACHE_DIR/ip.txt"
@@ -23,5 +27,5 @@ echo " - $IP_FILE"
 echo " - $ISP_FILE"
 echo "================================="
 echo ""
-wget -q https://raw.githubusercontent.com/dudul19/autosc/main/zivpn/zivpn-manager -O /usr/local/bin/zivpn-manager
+wget -q ${RREPO}zivpn/zivpn-manager -O /usr/local/bin/zivpn-manager
 chmod +x /usr/local/bin/zivpn-manager && /usr/local/bin/zivpn-manager

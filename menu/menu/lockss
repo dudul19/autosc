@@ -1,0 +1,91 @@
+#!/bin/bash
+clear
+LOCK_FILE="/etc/user_locks.db"
+XRAY_CONFIG="/etc/xray/config.json"
+BACKUP_DIR="/etc/xray/backups"
+
+[[ ! -f $LOCK_FILE ]] && touch $LOCK_FILE
+[[ ! -d $BACKUP_DIR ]] && mkdir -p $BACKUP_DIR
+
+reload_services() {
+    systemctl restart xray >/dev/null 2>&1
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-shadowsocks
+}
+
+modify_xray_config() {
+    local action="$1"
+    local user="$2"
+    local protocol="shadowsocks"
+    local marker="#&@ $user"
+
+    if [[ $action == "lock" ]]; then
+        cp $XRAY_CONFIG "$BACKUP_DIR/config.json.bak"
+        sed -i "/^${marker}/,/^},{/d" $XRAY_CONFIG
+        clear
+        echo "======================================"
+        echo " ❖ Lock Shadowsocks Account"
+        echo "--------------------------------------"
+        echo " User '${user}' on protocol '${protocol}' has been locked."
+    elif [[ $action == "unlock" ]]; then
+        if [[ -f "$BACKUP_DIR/config.json.bak" ]]; then
+            clear
+            echo "======================================"
+            echo " ❖ Unlock Shadowsocks Account"
+            echo "--------------------------------------"
+            echo -e " User '${user}' on protocol '${protocol}' has been restored from the backup"
+        else
+            clear
+            echo "======================================"
+            echo " ❖ Unlock Shadowsocks Account"
+            echo "--------------------------------------"
+            echo " Backup not found! Failed to unlock user '${user}'"
+        fi
+    fi
+}
+
+lock_user() {
+    echo "======================================"
+    echo " ❖ Lock Shadowsocks Account"
+    echo "--------------------------------------"
+
+    mapfile -t all_users < <(grep -E "^#@& " "$XRAY_CONFIG" | cut -d ' ' -f 2 | sort | uniq)
+    mapfile -t locked_users < <(grep "^shadowsocks:" "$LOCK_FILE" | cut -d ':' -f2)
+
+    available_users=()
+    for user in "${all_users[@]}"; do
+        if [[ ! " ${locked_users[*]} " =~ " ${user} " ]]; then
+            available_users+=("$user")
+        fi
+    done
+
+    if [[ ${#available_users[@]} -eq 0 ]]; then
+        echo " No Active Users Found"
+        echo "======================================"
+        echo
+        read -n 1 -s -r -p "Press any key to back"
+        m-shadowsocks
+        return
+    fi
+
+    for i in "${!available_users[@]}"; do
+        echo -e " $((i+1)). ${available_users[$i]}"
+    done
+
+    echo "======================================"
+    echo
+    read -p "Enter number : " selected
+
+    if ! [[ "$selected" =~ ^[0-9]+$ ]] || (( selected < 1 || selected > ${#available_users[@]} )); then
+        echo -e "Invalid selection"
+        return
+    fi
+
+    user="${available_users[$((selected-1))]}"
+    echo "shadowsocks:${user}" >> "$LOCK_FILE"
+    modify_xray_config "lock" "$user"
+    reload_services
+}
+lock_user

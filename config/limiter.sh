@@ -1,4 +1,7 @@
 #!/bin/bash
+# Main Configuration
+REPO="https://raw.githubusercontent.com/dudul19/autosc/main/files/"
+#-------------------
 
 if [[ $EUID -ne 0 ]]; then
     echo "This script must be run as root"
@@ -6,7 +9,6 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 install_services() {
-    local REPO="https://raw.githubusercontent.com/dudul19/autosc/main/files/"
     local LIMIT_IP_SERVICES=("limiter-vm" "limiter-vl" "limiter-trj" "limiter-shd" "limiter-ssh")
     local LIMIT_IP_REMOTE_FILES=("lite-vm" "lite-vl" "lite-trj" "lite-shd" "lite-ssh")
     local LIMIT_QUOTA_SERVICES=("limitvmess" "limitvless" "limittrojan" "limitshadowsocks")

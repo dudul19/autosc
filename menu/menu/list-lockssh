@@ -1,0 +1,22 @@
+#!/bin/bash
+clear
+echo "======================================"
+echo " ❖ Locked SSH Account List"
+echo "--------------------------------------"
+echo " Username         Exp Date"
+echo "--------------------------------------"
+while read -r user_entry; do
+  AKUN="$(echo "$user_entry" | cut -d: -f1)"  # Nama pengguna
+  ID="$(echo "$user_entry" | grep -v nobody | cut -d: -f3)"  # ID pengguna
+  exp="$(chage -l "$AKUN" 2>/dev/null | grep "Account expires" | awk -F": " '{print $2}')"  # Tanggal expired
+  status="$(passwd -S "$AKUN" 2>/dev/null | awk '{print $2}')"  # Status akun
+
+  if [[ "$ID" -ge 1000 && "$status" == "L" ]]; then
+    printf "%-17s %-17s\n" "$AKUN" "$exp"
+  fi
+done < /etc/passwd
+
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-ssh

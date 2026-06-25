@@ -1,0 +1,29 @@
+#!/bin/bash
+
+clear
+echo "======================================"
+echo " ❖ Setup Bot Notification"
+echo "--------------------------------------"
+read -rp " Bot Token   : " -e bottoken 
+read -rp " Telegram ID : " -e admin
+clear
+
+mkdir -p /etc/bot
+DATADB=$(grep "^#bot#" /etc/bot/.bot.db | grep -w "${bottoken}" | awk '{print $2}' 2>/dev/null)
+
+if [[ -n "${DATADB}" ]]; then
+  sed -i "/\b${bottoken}\b/d" /etc/bot/.bot.db
+fi
+
+echo "#bot# ${bottoken} ${admin}" >> /etc/bot/.bot.db
+
+clear
+echo "======================================"
+echo " ❖ Success Add Bot Notification"
+echo "--------------------------------------"
+echo " Bot Token   : $bottoken"
+echo " Telegram ID : $admin"
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-bot-notif

@@ -1,6 +1,8 @@
 #!/bin/bash
 # Zivpn UDP Module installer
 # Creator Zahid Islam
+clear
+source /usr/local/sbin/nuclear
 
 echo -e "Updating server"
 sudo apt-get update && apt-get upgrade -y
@@ -9,7 +11,7 @@ echo -e "Downloading UDP Service"
 wget https://github.com/arivpnstores/udp-zivpn/releases/download/zahidbd2/udp-zivpn-linux-amd64 -O /usr/local/bin/zivpn 
 chmod +x /usr/local/bin/zivpn
 mkdir /etc/zivpn 
-wget https://raw.githubusercontent.com/dudul19/autosc/main/zivpn/config.json -O /etc/zivpn/config.json 
+wget ${REOP}zivpn/config.json -O /etc/zivpn/config.json 
 
 echo "Generating cert files:"
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=California/L=Los Angeles/O=Example Corp/OU=IT Department/CN=zivpn" -keyout "/etc/zivpn/zivpn.key" -out "/etc/zivpn/zivpn.crt"
@@ -37,13 +39,8 @@ WantedBy=multi-user.target
 EOF
 
 echo -e "ZIVPN UDP Passwords -> otomatis pakai 'zi'"
-
-# Set config jadi ["zi"]
 new_config_str="\"config\": [\"zi\"]"
-
-# Replace isi config.json
 sed -i -E "s/\"config\": ?\[[^]]*\]/${new_config_str}/" /etc/zivpn/config.json
-
 echo "Config berhasil diupdate menjadi: [\"zi\"]"
 
 systemctl enable systemd-networkd-wait-online.service
@@ -56,7 +53,7 @@ ufw allow 5667/udp
 rm zi.* 
 
 echo -e "\n🔐 SAVE IPTABLES & CHECK STATUS"
-# simpan rule
+
 if netfilter-persistent save >/dev/null 2>&1; then
     echo "✅ iptables rules berhasil disimpan"
 else
@@ -64,7 +61,6 @@ else
     exit 1
 fi
 
-# cek service
 if systemctl is-active --quiet netfilter-persistent; then
     echo "✅ netfilter-persistent: ACTIVE"
 else
@@ -73,7 +69,6 @@ else
     exit 1
 fi
 
-# cek apakah rule zivpn benar-benar ada di file
 if grep -qE "6000:19999|5667" /etc/iptables/rules.v4; then
     echo "✅ NAT ZiVPN tersimpan di rules.v4"
 else

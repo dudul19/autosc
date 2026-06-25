@@ -1,7 +1,12 @@
 #!/bin/bash
+# Main Configuration
+DOMAIN=hahah.fun # Your Domain
+CF_KEY=266a89fba5c8824b989d663b382ba84f06d17 # Cloudflare Global Api Key
+CF_ID=qwqw34207@gmail.com # Email Cloudflare
+#-------------------
 
+clear
 IP=$(wget -qO- icanhazip.com)
-
 apt install jq curl -y >/dev/null 2>&1
 clear
 echo ""
@@ -9,9 +14,6 @@ echo "======================================"
 echo " ❖ Setup Subdomain Menu"
 echo "--------------------------------------"
 
-DOMAIN=hahah.fun
-CF_KEY=266a89fba5c8824b989d663b382ba84f06d17
-CF_ID=qwqw34207@gmail.com
 set -euo pipefail
 
 ZONE=$(curl -sLX GET "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN}&status=active" \

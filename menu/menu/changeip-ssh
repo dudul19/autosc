@@ -1,0 +1,66 @@
+#!/bin/bash
+clear
+
+echo "============================================"
+echo " ❖ Change IP SSH Account"
+echo "--------------------------------------------"
+echo " Username         Exp Date         Status "
+echo "--------------------------------------------"
+
+while read expired; do
+    AKUN="$(echo $expired | cut -d: -f1)"
+    ID="$(echo $expired | grep -v nobody | cut -d: -f3)"
+    exp="$(chage -l $AKUN | grep "Account expires" | awk -F": " '{print $2}')"
+    status="$(passwd -S $AKUN | awk '{print $2}')"
+    if [[ $ID -ge 1000 ]]; then
+        if [[ "$status" = "L" ]]; then
+            printf "${RED}%-17s %-17s %s${RESET}\n" "$AKUN" "$exp" "LOCKED"
+        else
+            printf "${GREEN}%-17s %-17s %s${RESET}\n" "$AKUN" "$exp" "UNLOCKED"
+        fi
+    fi
+done < /etc/passwd
+
+JUMLAH="$(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd | wc -l)"
+echo "--------------------------------------------"
+echo " Total account: $JUMLAH user"
+echo "============================================"
+echo
+read -p "Enter username : " user
+limit_file="/etc/limit/ssh/ip/$user"
+
+if [ -e "$limit_file" ]; then
+    current_iplimit=$(cat "$limit_file")
+    clear
+    echo "======================================"
+    echo " ❖ Current IP Limit"
+    echo "--------------------------------------"
+    echo " Username   : $user"
+    echo " IP Limit   : $current_iplimit"
+    echo "======================================"
+    echo
+    read -p "Enter new IP limit : " new_iplimit
+    if [ -z "$new_iplimit" ]; then
+        echo -e "Invalid input. No changes made"
+    else
+        echo "$new_iplimit" > "$limit_file"
+        clear
+        echo "======================================"
+        echo " ❖ Change IP SSH Account"
+        echo "--------------------------------------"
+        echo " Successfully Updated!"
+        echo " Username     : $user"
+        echo " New IP Limit : $new_iplimit"
+        echo "======================================"
+    fi
+else
+    clear
+    echo "======================================"
+    echo " ❖ Change IP SSH Account"
+    echo "--------------------------------------"
+    echo " Error: Limit file not found for $user"
+    echo "======================================"
+fi
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-ssh

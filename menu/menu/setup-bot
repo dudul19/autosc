@@ -1,0 +1,25 @@
+#!/bin/bash
+
+clear
+setup_bot() {
+    clear
+    echo "======================================"
+    echo " ❖ Setup Backup Bot"
+    echo "--------------------------------------"
+    switch=$(grep -i "switch" /root/.bckupbot | awk '{print $2}' 2>/dev/null)
+    echo " Go to @BotFather to create a new bot."
+    echo " Go to @MissRose_bot to get Telegram ID"
+    echo "--------------------------------------"
+    read -p " Bot Token : " getToken
+    read -p " Admin ID  : " adminID
+    echo "$getToken" >/root/.bckupbot
+    echo "$adminID" >>/root/.bckupbot
+    echo "switch $switch" >>/root/.bckupbot
+    echo
+    echo " Bot Settings Successfully Saved."
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-backup
+}
+
+setup_bot

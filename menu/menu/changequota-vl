@@ -1,0 +1,83 @@
+#!/bin/bash
+clear
+
+function change_vless_quota() {
+    users=$(grep -oP "^#& \K[^ ]+" /etc/xray/config.json | awk '!seen[$0]++')
+
+    if [[ -z $users ]]; then
+        echo -e "No users found in /etc/xray/config.json"
+        read -n 1 -s -r -p "Press any key to back"
+        m-vless
+    fi
+
+    echo "======================================"
+    echo " ❖ Change Quota Vless Account"
+    echo "--------------------------------------"
+    i=1
+    for user in $users; do
+        echo "$i) $user"
+        ((i++))
+    done
+    echo "======================================"
+    echo
+    read -p "Enter number : " number
+    user=$(echo "$users" | sed -n "${number}p")
+
+    if [[ -z "$user" ]]; then
+        echo "The number entered is incorrect or does not exist"
+        read -n 1 -s -r -p "Press any key to back"
+        m-vless
+    fi
+
+    quota_file="/etc/vless/${user}"
+    quota_dir=$(dirname "$quota_file")
+
+    if [ ! -d "$quota_dir" ]; then
+        mkdir -p "$quota_dir"
+    fi
+
+    if [ -f "$quota_file" ]; then
+        current_quota=$(cat "$quota_file")
+        current_quota_gb=$((current_quota / 1024 / 1024 / 1024))
+        clear
+        echo "======================================"
+        echo " ❖ Current Quota Limit"
+        echo "--------------------------------------"
+        echo " Username    : $user"
+        echo " Quota Limit : $current_quota_gb GB"
+        echo "======================================"
+    else
+        echo -e "There is no quota set for $user"
+    fi
+
+    echo
+    read -p "Enter new quota : " new_quota
+    if [[ -z "$new_quota" || ! "$new_quota" =~ ^[0-9]+$ ]]; then
+        echo -e "Invalid quota input"
+        read -n 1 -s -r -p "Press any key to back"
+        m-vless
+    fi
+
+    new_quota_bytes=$((new_quota * 1024 * 1024 * 1024))
+    echo "$new_quota_bytes" > "$quota_file"
+
+    sed -i "/^#& $user /d" /etc/vless/.vless.db
+    exp=$(grep "^#& $user " /etc/xray/config.json | awk '{print $3}')
+    uuid=$(grep "^#& $user " /etc/xray/config.json | awk '{print $4}')
+    iplimit=$(grep -w "$user" /etc/limit/vless/ip | cat || echo 0)
+    echo "#& $user $exp $uuid $new_quota $iplimit" >> /etc/vless/.vless.db
+
+    clear
+    echo "======================================"
+    echo " ❖ Change Quota Limit Vless Account"
+    echo "--------------------------------------"
+    echo " Quota successfully updated"
+    echo " Username   : $user"
+    echo " New Quota  : $new_quota GB"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-vless
+}
+
+change_vless_quota

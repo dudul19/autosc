@@ -1,0 +1,24 @@
+#!/bin/bash
+clear
+LOCK_FILE="/etc/user_locks.db"
+
+echo "======================================"
+echo " ❖ Locked Trojan Account List"
+echo "--------------------------------------"
+if [[ ! -f "$LOCK_FILE" ]]; then
+  echo -e " Error: File ${LOCK_FILE} not found!"
+  echo "======================================"
+  echo
+  read -n 1 -s -r -p "Press any key to back"
+  m-trojan
+fi
+
+grep "^vmess:" "$LOCK_FILE" | awk -F: '{print $2}' | while read -r user; do
+  if [[ -n "$user" ]]; then
+    echo " - ${user}"
+  fi
+done
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-trojan

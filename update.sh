@@ -1,12 +1,15 @@
 #!/bin/bash
 clear
+# Main Configuration
+REPO="https://raww.githubusercontent.com/dudul19/autosc/main/"
+#-------------------
 
+clear
 dateFromServer=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
 biji=`date +"%Y-%m-%d" -d "$dateFromServer"`
 
 red() { echo "${*}"; }
 
-clear
 fun_bar() {
     CMD[0]="$1"
     CMD[1]="$2"
@@ -35,7 +38,7 @@ fun_bar() {
 }
 
 res1() {
-    wget https://raw.githubusercontent.com/dudul19/autosc/main/menu/menu.zip
+    wget ${REPO}menu/menu.zip
     unzip -P miqdad12 menu.zip
     chmod +x menu/*
     mv menu/* /usr/local/sbin
@@ -50,13 +53,21 @@ res1() {
 netfilter-persistent
 clear
 echo "======================================"
-echo " ❖ Update Script                      "
+echo " ❖ Update Script"
 echo "--------------------------------------"
-echo ""
-fun_bar 'res1'
-echo ""
+echo
+read -p " Are you sure you want to update the script? [Y/n]: " konfirmasi
+
+if [[ "$konfirmasi" == "Y" || "$konfirmasi" == "y" || "$konfirmasi" == "" ]]; then
+
+    fun_bar 'res1'
+else
+    echo " The update was canceled by the user."
+fi
+
+echo
 echo "======================================"
-echo ""
-read -n 1 -s -r -p "Press any key to go back"
-echo ""
+echo 
+read -n 1 -s -r -p "Press any key to back"
+echo
 menu

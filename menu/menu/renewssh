@@ -1,0 +1,71 @@
+#!/bin/bash
+clear
+echo "============================================"
+echo " ❖ Renew SSH Account"
+echo "--------------------------------------------"
+echo " Username         Exp Date          Status "
+echo "--------------------------------------------"
+while read expired; do
+    USERNAME="$(echo $expired | cut -d: -f1)"
+    ID="$(echo $expired | grep -v nobody | cut -d: -f3)"
+    exp_date="$(chage -l $USERNAME | grep "Account expires" | awk -F": " '{print $2}')"
+    status="$(passwd -S $USERNAME | awk '{print $2}')"
+    if [[ $ID -ge 1000 ]]; then
+        if [[ "$status" = "L" ]]; then
+            printf "%-17s %2s %-17s %2s \n" "$USERNAME" "$exp_date     " "LOCKED"
+        else
+            printf "%-17s %2s %-17s %2s \n" "$USERNAME" "$exp_date     " "UNLOCKED"
+        fi
+    fi
+done < /etc/passwd
+echo "============================================"
+echo
+read -p "Enter Username : " USERNAME
+egrep "^$USERNAME" /etc/passwd >/dev/null
+if [ $? -eq 0 ]; then
+    read -p "Extend Days    : " DAYS
+    read -p "New Quota (GB) : " QUOTA
+    read -p "New IP Limit   : " IP_LIMIT
+
+    # Update Expiration
+    TODAY=$(date +%s)
+    EXTEND_SECONDS=$((DAYS * 86400))
+    EXPIRY_DATE=$(($TODAY + $EXTEND_SECONDS))
+    FORMATTED_EXPIRY=$(date -u --date="1970-01-01 $EXPIRY_DATE sec GMT" +%Y/%m/%d)
+    EXPIRY_DISPLAY=$(date -u --date="1970-01-01 $EXPIRY_DATE sec GMT" '+%d %b %Y')
+    passwd -u $USERNAME
+    usermod -e $FORMATTED_EXPIRY $USERNAME
+
+    # Update Quota
+    mkdir -p /etc/ssh
+    QUOTA_BYTES=$(($QUOTA * 1024 * 1024 * 1024))
+    echo $QUOTA_BYTES > /etc/ssh/$USERNAME
+
+    # Update IP Limit
+    mkdir -p /etc/limit/ssh/ip
+    echo $IP_LIMIT > /etc/limit/ssh/ip/$USERNAME
+
+    clear
+    echo "======================================"
+    echo " ❖ Renew SSH Account"
+    echo "--------------------------------------"
+    echo " Username      : $USERNAME"
+    echo " Days Extended : $DAYS Days"
+    echo " Expired       : $EXPIRY_DISPLAY"
+    echo " New Quota     : ${QUOTA} GB"
+    echo " New IP Limit  : $IP_LIMIT IP"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-ssh
+else
+    clear
+    echo "======================================"
+    echo " ❖ Renew SSH Account"
+    echo "--------------------------------------"
+    echo " Username Not Found"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-ssh
+fi

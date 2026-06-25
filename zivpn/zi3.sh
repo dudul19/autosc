@@ -1,6 +1,9 @@
 #!/bin/bash
 # Zivpn UDP Module installer
 # Creator Zahid Islam
+# Main Configuration
+clear
+source /usr/local/sbin/nuclear
 
 echo -e "Updating server"
 sudo apt-get update && apt-get upgrade -y
@@ -9,7 +12,7 @@ echo -e "Downloading UDP Service"
 wget https://github.com/arivpnstores/udp-zivpn/releases/download/zahidbd2/udp-zivpn-linux-arm -O /usr/local/bin/zivpn 
 chmod +x /usr/local/bin/zivpn
 mkdir /etc/zivpn 
-wget https://raw.githubusercontent.com/dudul19/autosc/main/zivpn/config.json -O /etc/zivpn/config.json 
+wget ${REPO}zivpn/config.json -O /etc/zivpn/config.json 
 
 echo "Generating cert files:"
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=California/L=Los Angeles/O=Example Corp/OU=IT Department/CN=zivpn" -keyout "/etc/zivpn/zivpn.key" -out "/etc/zivpn/zivpn.crt"

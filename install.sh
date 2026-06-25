@@ -1,5 +1,13 @@
 #!/bin/bash
 clear
+# Main Configuration
+LICENSE="https://raw.githubusercontent.com/dudul19/autosc-license/main/ip" # IP License
+REPO="https://raw.githubusercontent.com/dudul19/autosc/main/" # Repository 
+BOTINSTALL="8858860572:AAFfh34l0YYXNW4wpW_AKwLLrcyYLss1Bxg" # Installation notification bot
+ADMINID="1476710905" # Telegram ID for sending Installation notification
+#-------------------
+
+clear
 export DEBIAN_FRONTEND=noninteractive
 FONT='\033[0m'
 Green="\e[92;1m"
@@ -22,7 +30,7 @@ NC='\033[0m'
 
 tampilan() {
     local my_ip allowed_ips_url today matched_line exp_date_or_lifetime
-    allowed_ips_url="https://raw.githubusercontent.com/dudul19/autosc/main/ip"
+    allowed_ips_url="${LICENSE}"
     echo -e "\n${BIWhite}[ ${BIYellow}INFO${BIWhite} ] Checking access permissions...${NC}"
     
     my_ip=$(curl -sS ipv4.icanhazip.com | tr -d '\r')
@@ -144,7 +152,6 @@ read -p "$( echo -e "${BIWhite}Press ${LIME}[${BIWhite} Enter ${LIME}]${BIWhite}
 echo ""
 
 clear
-REPO="https://raw.githubusercontent.com/dudul19/autosc/main/"
 start=$(date +%s)
 secs_to_human() {
     echo "Installation time : $((${1} / 3600)) hours $(((${1} / 60) % 60)) minute's $((${1} % 60)) seconds"
@@ -316,7 +323,7 @@ function memasang_domain() {
 memasang_notifikasi_bot() {
   clear
   local MYIP=$(curl -sS ipv4.icanhazip.com)
-  local izinsc="https://raw.githubusercontent.com/dudul19/autosc/main/ip"
+  local izinsc="${LICENSE}"
   local IP_DATA_LINE=$(curl -s "$izinsc" | grep -w "$MYIP" | head -1)
   local username=$(echo "$IP_DATA_LINE" | awk '{print $2}')
   local exp=$(echo "$IP_DATA_LINE" | awk '{print $3}')
@@ -353,8 +360,8 @@ memasang_notifikasi_bot() {
   local TIMEZONE=$(date +'%Y-%m-%d %H:%M:%S %Z')
   local CITY=$(curl -s ipinfo.io/city)
   local ISP=$(curl -s ipinfo.io/org | cut -d " " -f 2-10)
-  local CHATID="1476710905"
-  local KEY="8858860572:AAFfh34l0YYXNW4wpW_AKwLLrcyYLss1Bxg"
+  local CHATID="${ADMINID}"
+  local KEY="${BOTINSTALL}"
   local URL="https://api.telegram.org/bot$KEY/sendMessage"
   local TIME="10"
   local TEXT="

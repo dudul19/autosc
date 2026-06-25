@@ -1,0 +1,180 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+    TODAY_DATE=$(date +'%Y-%m-%d')
+    AUTHORIZED_ENTRY=$(curl -sS ${LICENSE} | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+PERMISSION
+clear
+
+update_domain_and_ns() {
+    local dom="$1"
+    local nsdomen="$2"
+
+    if [[ -z "$dom" || -z "$nsdomen" ]]; then
+        echo -e "Domain and Nameserver cannot be empty. Please try again"
+        return 1
+    fi
+
+    if ! [ -d "/etc/xray" ]; then
+        mkdir -p /etc/xray
+    fi
+
+    echo "IP=$dom" > /var/lib/ipvps.conf
+    echo "$dom" > /root/domain
+    echo "$dom" > /etc/xray/domain
+    echo "$nsdomen" > /root/nsdomain
+    echo "$nsdomen" > /etc/xray/dns
+    clear
+    echo "======================================"
+    echo " ❖ Change Domain & Nameserver"
+    echo "--------------------------------------"
+    echo " Domain and Nameservers successfully updated!"
+    echo " New domain     : $dom"
+    echo " New nameserver : $nsdomen"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-domain
+}
+
+update_ns() {
+    local nsdomen="$1"
+
+    if [[ -z "$nsdomen" ]]; then
+        echo -e "Nameserver cannot be empty. Please try again"
+        return 1
+    fi
+
+    echo "$nsdomen" > /root/nsdomain
+    echo "$nsdomen" > /etc/xray/dns
+    echo 
+    echo "======================================"
+    echo " ❖ Change Nameserver"
+    echo "--------------------------------------"
+    echo " Nameserver successfully updated!"
+    echo " New Nameserver : $nsdomen"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-domain
+}
+
+update_domain() {
+    local domain="$1"
+
+    if [[ -z "$dom" ]]; then
+        echo -e "Domain cannot be empty. Please try again"
+        return 1
+    fi
+
+    echo "$dom" > /etc/xray/domain
+    echo "$dom" > /root/domain
+    clear
+    echo "======================================"
+    echo " ❖ Change Domain"
+    echo "--------------------------------------"
+    echo " Domain successfully updated!"
+    echo " New domain : $dom"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-domain
+}
+
+clear
+echo "======================================"
+echo " ❖ Domain Menu"
+echo "--------------------------------------"
+echo " 1.  Change Domain & Nameserver"
+echo " 2.  Change Domain Only"
+echo " 3.  Change Nameserver Only"
+echo " 4.  Renew Domain Certificate"
+echo " 5.  Change Domain & Certificate"
+echo " x.  Exit"
+echo "======================================"
+echo 
+read -p "Enter your option [1-5 or x]  : " opt
+case $opt in
+1)
+clear
+echo "======================================"
+echo " ❖ Change Domain & Nameserver"
+echo "--------------------------------------"
+echo
+read -p "New Domain     : " dom
+read -p "New Nameserver : " nsdomen
+update_domain_and_ns "$dom" "$nsdomen"
+;;
+2)
+clear
+echo "======================================"
+echo " ❖ Change Domain"
+echo "--------------------------------------"
+echo
+read -p "New Domain     : " dom
+update_domain "$dom"
+;;
+3)
+clear
+echo "======================================"
+echo " ❖ Change Nameserver"
+echo "--------------------------------------"
+echo
+read -p "New Nameserver : " nsdomen
+update_ns "$nsdomen"
+;;  
+4)
+clear
+fixcert
+;;
+5)
+clear
+addhost
+;;   
+x)
+clear
+m-setting
+;;
+*)
+echo -e "You pressed it wrong!"
+sleep 1
+m-domain
+;;
+esac
