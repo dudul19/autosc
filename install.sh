@@ -3,7 +3,7 @@ clear
 # Main Configuration
 LICENSE="https://raw.githubusercontent.com/dudul19/autosc-license/main/ip" # IP License
 REPO="https://raw.githubusercontent.com/dudul19/autosc/main/" # Repository 
-BOTINSTALL="8858860572:AAFfh34l0YYXNW4wpW_AKwLLrcyYLss1Bxg" # Installation notification bot
+BOTINSTALL="8864661053:AAFl7PLytgmSqBImH_CVCQO29vJkfPowwSk" # Installation notification bot
 ADMINID="1476710905" # Telegram ID for sending Installation notification
 #-------------------
 
