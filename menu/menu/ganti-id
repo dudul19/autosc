@@ -1,0 +1,157 @@
+#!/bin/bash
+clear
+CONFIG_FILE="/etc/xray/config.json"
+
+backup_config_file() {
+    local backup_name="$1"
+    if [[ -f "$backup_name" ]]; then
+        echo "Backup config.json ($backup_name) already exists. Do not create a new backup"
+        return 0
+    fi
+    if cp "$CONFIG_FILE" "$backup_name"; then
+        echo "Backup config.json is saved as $backup_name"
+        return 0
+    else
+        echo -e "Failed to backup file $backup_name"
+        return 1
+    fi
+}
+
+main_change_user_id() {
+    clear
+    echo "======================================"
+    echo " ❖ Change XRAY UUID"
+    echo "--------------------------------------"
+    echo " Xray Account List"
+    echo "--------------------------------------"
+
+    accounts_vmess=$(grep -E "^ *### " "$CONFIG_FILE" | awk '{print $2, $3}')
+    accounts_vless=$(grep -E "^ *#& " "$CONFIG_FILE" | awk '{print $2, $3}')
+    accounts_trojan=$(grep -E "^ *#! " "$CONFIG_FILE" | awk '{print $2, $3}')
+    accounts_shadowsocks=$(grep -E "^ *#@& " "$CONFIG_FILE" | awk '{print $2, $3}')
+
+    all_accounts=$(echo -e "$accounts_vmess\n$accounts_vless\n$accounts_trojan\n$accounts_shadowsocks" | sort -u)
+
+    local i=1
+    declare -a usernames
+    declare -A user_comment_lines
+    declare -A user_protocol_type
+
+    while read name exp; do
+        if [[ -n "$name" && -n "$exp" ]]; then
+            printf " %-3s %-19s\n" "$i)" "$name"
+            usernames+=("$name")
+            local comment_line=$(grep -nE "^ *(###|#&|#!|#@&) $name " "$CONFIG_FILE" | head -n 1 | cut -d: -f1)
+            user_comment_lines["$name"]="$comment_line"
+
+            if grep -qE "^ *### $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="VMESS";
+            elif grep -qE "^ *#& $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="VLESS";
+            elif grep -qE "^ *#! $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="TROJAN";
+            elif grep -qE "^ *#@& $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="SHADOWSOCKS"; fi
+
+            ((i++))
+        fi
+    done <<< "$all_accounts"
+
+    echo "======================================"
+    if [[ ${#usernames[@]} -eq 0 ]]; then
+        echo -e "No accounts found in recognized comments!"
+        read -n 1 -s -r -p "Press any key to back"
+        m-setting
+    fi
+
+    echo ""
+    read -rp "Choose number : " nomor
+
+    if ! [[ "$nomor" =~ ^[0-9]+$ ]] || (( nomor < 1 || nomor > ${#usernames[@]} )); then
+        echo -e "Invalid number"
+        read -n 1 -s -r -p "Press any key to back"
+        m-setting
+    fi
+
+    selected_user="${usernames[$((nomor - 1))]}"
+    line_number_comment="${user_comment_lines[$selected_user]}"
+    selected_protocol="${user_protocol_type[$selected_user]}"
+
+    if [[ -z "$line_number_comment" ]]; then
+        echo -e "Internal error: Comment line number for user '$selected_user' not found"
+        read -n 1 -s -r -p "Press any key to back"
+        m-setting
+    fi
+
+    echo ""
+    echo "You choose the user: $selected_user (Protokol: $selected_protocol)"
+    read -rp "New UUID/Password: " new_id
+
+    if ! [[ "$new_id" =~ ^[a-fA-F0-9-]{36}$ ]]; then
+        echo -e "Invalid UUID/Password format (must be 36 character UUID format"
+        read -n 1 -s -r -p "Press any key to back"
+        m-setting
+    fi
+
+    local result_status=1
+
+    local backup_filename="${CONFIG_FILE}.bak"
+    if ! backup_config_file "$backup_filename"; then
+        echo -e "Operation was aborted because backup failed or already exists"
+        read -n 1 -s -r -p "Press any key to back"
+        m-setting
+    fi
+
+    local found=0
+    local key_to_find=""
+
+    if [[ "$selected_protocol" == "VLESS" || "$selected_protocol" == "VMESS" ]]; then
+        key_to_find="\"id\":"
+    elif [[ "$selected_protocol" == "TROJAN" || "$selected_protocol" == "SHADOWSOCKS" ]]; then
+        key_to_find="\"password\":"
+    else
+        echo -e "Unknown protocol ($selected_protocol). Unable to change UUID/Password"
+        result_status=1
+    fi
+
+    if [[ -n "$key_to_find" ]]; then
+        for (( j=1; j<=10; j++ )); do
+            local target_line=$((line_number_comment + j))
+            local line_content=$(sed -n "${target_line}p" "$CONFIG_FILE")
+
+            if echo "$line_content" | grep -qE "$key_to_find"; then
+                sed -i "${target_line}s/${key_to_find} *\"[^\"]*\"/${key_to_find} \"${new_id}\"/" "$CONFIG_FILE"
+                found=1
+                break
+            fi
+        done
+    fi
+
+    if [[ $found -eq 1 ]]; then
+        echo -e "UUID/Password for user '$selected_user' replaced successfully!"
+        echo "File $CONFIG_FILE has been updated"
+        echo "Try restarting the xray service"
+        systemctl restart xray
+        if systemctl is-active --quiet xray; then
+            echo "Xray service restarted successfully"
+            result_status=0
+        else
+            echo "Failed to restart the Xray service. Please check manually."
+            result_status=1
+        fi
+    else
+        echo -e "UUID/Password not found in client block for user '$selected_user' around the comments"
+        echo "Make sure the config.json structure is consistent or adjust the search range (currently 10 line)"
+        result_status=1
+    fi
+
+    if [[ "$result_status" -ne 0 ]]; then
+        local timestamp=$(date +"%Y%m%d%H%M%S")
+        local failed_backup_filename="${CONFIG_FILE}.bak_FAILED_${timestamp}"
+        if [[ -f "${CONFIG_FILE}.bak" ]]; then
+            mv "${CONFIG_FILE}.bak" "$failed_backup_filename"
+            echo -e "Failure backups are saved as: $failed_backup_filename"
+        fi
+    fi
+
+    read -n 1 -s -r -p "Press any key to back"
+    m-setting
+}
+backup_config_file
+main_change_user_id

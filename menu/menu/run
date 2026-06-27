@@ -1,0 +1,199 @@
+#!/bin/bash
+clear
+domain=$(cat /etc/xray/domain)
+WKT=$(curl -s ipinfo.io/timezone)
+IPVPS=$(curl -s ipv4.icanhazip.com)
+tram=$(free -m | awk 'NR==2 {print $2}')
+swap=$(free -m | awk 'NR==4 {print $2}')
+freq=$(awk -F: ' /cpu MHz/ {freq=$2} END {print freq}' /proc/cpuinfo)
+cores=$(awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo)
+cname=$(awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo)
+knr=$( uname -r )
+
+export IP=$( curl -s https://ipinfo.io/ip/ )
+
+ssh_service=$(systemctl is-active ssh)
+openvpn_service=$(systemctl is-active openvpn)
+dropbear_status=$(systemctl is-active dropbear)
+haproxy_service=$(systemctl is-active haproxy)
+fail2ban_service=$(systemctl is-active fail2ban)
+cron_service=$(systemctl is-active cron)
+badvpn1=$(systemctl is-active udp-mini-1)
+badvpn2=$(systemctl is-active udp-mini-2)
+badvpn3=$(systemctl is-active udp-mini-3)
+Iptables=$(systemctl is-active netfilter-persistent)
+RClocal=$(systemctl is-active rc-local)
+Autorebot=$(systemctl is-active rc-local)
+UdpSSH=$(systemctl is-active udp-custom)
+
+openssh=$( systemctl is-active ssh )
+if [[ $openssh == "active" ]]; then
+    status_openssh="Online"
+else
+    status_openssh="Offline"
+fi
+
+slowdns=$( systemctl is-active server-sldns )
+if [[ $slowdns == "active" ]]; then
+    status_sldns="Online"
+else
+    status_sldns="Offline"
+fi
+
+ssh_wsl=$( systemctl is-active ws-stunnel )
+if [[ $ssh_wsl == "active" ]]; then
+    status_ws="Online"
+else
+    status_ws="Offline"
+fi
+
+ss=$( systemctl is-active xray )
+if [[ $ss == "active" ]]; then
+    status_ss="Online"
+else
+    status_ss="Offline"
+fi
+
+nginx=$(systemctl is-active nginx)
+if [[ $nginx == "active" ]]; then
+    status_nginx="Online"
+else
+    status_nginx="Offline"
+fi
+
+# STATUS SERVICE IPTABLES
+if [[ $Iptables == "active" ]]; then
+    status_galo="Online"
+else
+    status_galo="Offline"
+fi
+
+# STATUS SERVICE  SSH 
+if [[ $ssh_service == "active" ]]; then 
+   status_ssh="Online"
+else
+   status_ssh="Offline"
+fi
+
+# STATUS SERVICE OPENVPN
+if [[ $openvpn_service == "active" ]]; then
+  status_openvpn="Online"
+else
+  status_openvpn="Offline"
+fi
+
+
+if [[ $dropbear_status == "active" ]]; then 
+   status_beruangjatuh="Online"
+else
+   status_beruangjatuh="Offline"
+fi
+
+
+if [[ $haproxy_service == "active" ]]; then 
+   status_haproxy="Online"
+else
+   status_haproxy="Offline"
+fi
+
+# STATUS SERVICE  FAIL2BAN 
+if [[ $fail2ban_service == "active" ]]; then 
+   status_fail2ban="Online"
+else
+   status_fail2ban="Offline"
+fi
+
+# STATUS SERVICE  CRONS 
+if [[ $cron_service == "active" ]]; then 
+   status_cron="Online"
+else
+   status_cron="Offline"
+fi
+
+# STATUS SERVICE  BADVPN 1
+if [[ $badvpn1 == "active" ]]; then 
+   status_udp1="Online"
+else
+   status_udp1="Offline"
+fi
+
+# STATUS SERVICE  BADVPN 2
+if [[ $badvpn2 == "active" ]]; then 
+   status_udp2="Online"
+else
+   status_udp2="Offline"
+fi
+
+# STATUS SERVICE  BADVPN 3
+if [[ $badvpn3 == "active" ]]; then 
+   status_udp3="Online"
+else
+   status_udp3="Offline"
+fi
+
+if [[ $RClocal == "active" ]]; then
+    status_galoo="Online"
+else
+    status_galoo="Offline"
+fi
+
+if [[ $Autorebot == "active" ]]; then
+    status_galooo="Online"
+else
+    status_galooo="Offline"
+fi
+
+
+if [[ $UdpSSH == "active" ]]; then 
+   status_udp="Online"
+else
+   status_udp="Offline"
+fi
+
+noobz=$( systemctl is-active noobzvpns )
+if [[ $noobz == "active" ]]; then
+    status_nobi="Online"
+else
+    status_nobi="Offline"
+fi
+
+zivpnudp=$(systemctl is-active zivpn)
+if [[ $zivpnudp == "active" ]]; then
+    status_ziv="Online"
+else
+    status_ziv="Offline"
+fi
+clear
+
+echo "======================================"
+echo " ❖ Service Status Information"
+echo "--------------------------------------"
+echo " Crons                    : $status_cron"
+echo " SSH WS                   : $status_ws"
+echo " Haproxy                  : $status_haproxy"
+echo " Slowdns                  : $status_sldns"
+echo " Fail2Ban                 : $status_fail2ban"
+echo " Dropbear                 : $status_beruangjatuh"
+echo " Noobz VPN                : $status_nobi"
+echo " SSH UDP Custom           : $status_udp"
+echo " Nginx Webserver          : $status_nginx"
+echo " XRAYS Vmess WS TLS       : $status_ss"
+echo " XRAYS Vmess WS Non TLS   : $status_ss"
+echo " XRAYS Vmess gRPC         : $status_ss"
+echo " XRAYS Vless WS TLS       : $status_ss"
+echo " XRAYS Vless WS Non TLS   : $status_ss"
+echo " XRAYS Vless gRPC         : $status_ss"
+echo " XRAYS Trojan WS          : $status_ss"
+echo " XRAYS Trojan Non WS      : $status_ss"
+echo " XRAYS Trojan gRPC        : $status_ss"
+echo " XRAYS Shadowsocks WS     : $status_ss"
+echo " XRAYS Shadowsocks Non WS : $status_ss"
+echo " XRAYS Shadowsocks gRPC   : $status_ss"
+#echo " ZiVPN UDP                : $status_ziv"
+echo " Iptables                 : $status_galo"
+echo " RClocal                  : $status_galoo"
+echo " Autoreboot               : $status_galooo"
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-setting

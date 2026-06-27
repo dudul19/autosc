@@ -1,0 +1,8 @@
+#!/bin/bash
+# Main Configuration
+VERSION="v.1.1.0"
+DEVELOPER="t.me/dudulrealnofek"
+GROUP="t.me/tfnuklir"
+LICENSE="https://raw.githubusercontent.com/dudul19/autosc-license/main/ip"
+REPO="https://raw.githubusercontent.com/dudul19/autosc/main/"
+#-------------------

@@ -1,0 +1,64 @@
+#!/bin/bash
+clear
+users=$(grep -E "^### " "/etc/xray/config.json" | sed -E 's/^### ([^ ]+).*/\1/' | awk '!seen[$0]++')
+
+echo "======================================"
+echo " ❖ Change IP Vmess Account"
+echo "--------------------------------------"
+i=1
+for user in $users; do
+    echo -e "$i) $user"
+    ((i++))
+done
+echo "======================================"
+echo
+read -p "Enter number : " number
+selected_user=$(echo "$users" | sed -n "${number}p")
+if [ -z "$selected_user" ]; then
+    echo -e "Invalid selection. Exiting"
+    read -n 1 -s -r -p "Press any key to back"
+    m-vmess
+fi
+
+limit_file="/etc/limit/vmess/ip/${selected_user}"
+limit_dir=$(dirname "$limit_file")
+if [ ! -d "$limit_dir" ]; then
+    mkdir -p "$limit_dir"
+    echo -e "Directory $limit_dir created"
+fi
+
+if [ -e "$limit_file" ]; then
+    current_iplimit=$(cat "$limit_file")
+    clear
+    echo "======================================"
+    echo " ❖ Current IP Limit"
+    echo "--------------------------------------"
+    echo " Username   : $selected_user"
+    echo " IP Limit   : $current_iplimit"
+    echo "======================================"
+else
+    echo -e "No IP limit file found for user $selected_user. Creating a new one"
+    current_iplimit="0"
+fi
+
+echo
+read -p "Enter new IP limit : " new_iplimit
+if [ -z "$new_iplimit" ]; then
+    echo "Invalid input. Exiting"
+    read -n 1 -s -r -p "Press any key to back"
+    m-vmess
+else
+    echo "$new_iplimit" > "$limit_file"
+    clear
+    echo "======================================"
+    echo " ❖ Change IP Vmess Account"
+    echo "--------------------------------------"
+    echo " Successfully Updated!"
+    echo " Username     : $selected_user"
+    echo " New IP Limit : $new_iplimit"
+    echo "======================================"
+    echo
+fi
+
+read -n 1 -s -r -p "Press any key to back"
+m-vmess

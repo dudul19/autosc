@@ -1,0 +1,55 @@
+#!/bin/bash
+clear
+
+echo "======================================"
+echo " ❖ Detail Vless Account"
+echo "--------------------------------------"
+printf " %-20s %s\n" "Username" "Exp Date"
+echo "--------------------------------------"
+
+accounts=$(grep -E "^#& " "/etc/xray/config.json" | awk '{print $2, $3}' | sort -u)
+
+i=1 
+declare -a account_array
+while read AKUN exp; do
+    if [[ -n "$AKUN" && -n "$exp" && "$AKUN" != " " && "$exp" != " " ]]; then
+        printf "%-3s %-17s %-17s\n" "$i)" "$AKUN" "$exp"
+        account_array+=("$AKUN")  
+        ((i++))  
+    fi
+done <<< "$accounts"
+
+echo "======================================"
+echo
+read -p "Enter number : " number
+
+if ! [[ "$number" =~ ^[0-9]+$ ]]; then
+    echo "Invalid input. Please enter a number"
+    read -n 1 -s -r -p "Press any key to back"
+    m-vless
+fi
+
+selected_user="${account_array[$((number - 1))]}"  
+
+if [ -z "$selected_user" ]; then
+    echo "Number is missing or incorrect"
+    read -n 1 -s -r -p "Press any key to back"
+    m-vless
+fi
+
+detail_file="/detail/vless/$selected_user.txt"
+if [[ -f "$detail_file" ]]; then
+    clear
+    echo "======================================"
+    echo " ❖ Detail Vless Account"
+    echo "--------------------------------------"
+    cat "$detail_file"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-vless
+else
+    echo "Detail file not found for user: $selected_user"
+    read -n 1 -s -r -p "Press any key to back"
+    m-vless
+fi

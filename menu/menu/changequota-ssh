@@ -1,0 +1,82 @@
+#!/bin/bash
+clear
+
+function change_ssh_quota() {
+echo "============================================"
+echo " ❖ Change Quota SSH Account"
+echo "--------------------------------------------"
+echo " Username         Exp Date         Status "
+echo "--------------------------------------------"
+  
+  while read user_line; do
+    AKUN=$(echo $user_line | cut -d: -f1)
+    ID=$(echo $user_line | cut -d: -f3)
+    if [[ $ID -ge 1000 ]]; then
+      exp=$(chage -l "$AKUN" | grep "Account expires" | awk -F": " '{print $2}')
+      status=$(passwd -S "$AKUN" | awk '{print $2}')
+      if [[ "$status" == "L" ]]; then
+        printf "%-17s %-17s ${RED}%s${RESET}\n" "$AKUN" "$exp" "LOCKED"
+      else
+        printf "%-17s %-17s ${GREEN}%s${RESET}\n" "$AKUN" "$exp" "UNLOCKED"
+      fi
+    fi
+  done < /etc/passwd
+
+JUMLAH=$(awk -F: '$3 >= 1000 {print $1}' /etc/passwd | wc -l)
+echo "--------------------------------------------"
+echo " Total account: $JUMLAH user"
+echo "============================================"
+echo
+
+read -p "Enter username : " user
+quota_file="/etc/ssh/$user"
+  
+  if [ -e "$quota_file" ]; then
+    current_quota=$(cat "$quota_file")
+    clear
+    echo "======================================"
+    echo " ❖ Current Quota Limit"
+    echo "--------------------------------------"
+    echo " Username    : $user"
+    echo " Quota Limit : $((current_quota / 1024 / 1024 / 1024)) GB"
+    echo "======================================"
+  else
+    echo -e "No quota set for $user"
+  fi
+  echo
+  read -p "Enter new quota : " new_quota
+  if [[ -z "$new_quota" || ! "$new_quota" =~ ^[0-9]+$ ]]; then
+    echo -e "Invalid input. No changes made"
+    read -n 1 -s -r -p "Press any key to back"
+    m-ssh
+  fi
+
+  new_quota_bytes=$((new_quota * 1024 * 1024 * 1024))
+  mkdir -p "$(dirname "$quota_file")"
+  echo "$new_quota_bytes" > "$quota_file"
+  clear
+  echo "======================================"
+  echo " ❖ Change Quota Limit SSH Account"
+  echo "--------------------------------------"
+  echo " Quota successfully updated"
+  echo " Username   : $user"
+  echo " New Quota  : $new_quota GB"
+  echo "======================================"
+
+  db_file="/etc/ssh/.ssh.db"
+  mkdir -p "$(dirname "$db_file")"
+  DATADB=$(grep "^#ssh# ${user} " "$db_file" || true)
+  ge=$(grep -w "$user" /etc/limit/ssh/ip | cat || echo 0)
+
+  if [[ -n "$DATADB" ]]; then
+    sed -i "/^#ssh# ${user} /d" "$db_file"
+  fi
+
+  echo "#ssh# ${user} $(date +%Y-%m-%d) ${new_quota_bytes}" >> "$db_file" 2>/dev/null
+  echo "#ssh# ${user} $(date +%Y-%m-%d) ${new_quota_bytes}" >> "$ge" 2>/dev/null
+  echo
+  read -n 1 -s -r -p "Press any key to back"
+  m-ssh
+}
+
+change_ssh_quota

@@ -1,0 +1,67 @@
+#!/bin/bash
+clear
+echo "======================================"
+echo " ❖ User Login SSH"
+echo "--------------------------------------"
+
+# Determine the log file location based on the system
+if [ -e "/var/log/auth.log" ]; then
+    LOG="/var/log/auth.log"
+elif [ -e "/var/log/secure" ]; then
+    LOG="/var/log/secure"
+else
+    echo "Log file not found!"
+    exit 1
+fi
+
+> /tmp/user_login_ips.txt
+dropbear_pids=($(ps aux | grep -i dropbear | awk '{print $2}'))
+grep -i "dropbear" "$LOG" | grep -i "Password auth succeeded" > /tmp/login-db.txt
+
+for PID in "${dropbear_pids[@]}"; do
+    login_info=$(grep "dropbear\[$PID\]" /tmp/login-db.txt)
+    if [ -n "$login_info" ]; then
+        USER=$(echo "$login_info" | awk '{print $10}')
+        IP=$(echo "$login_info" | awk '{print $12}')
+        echo "$USER $IP" >> /tmp/user_login_ips.txt
+    fi
+done
+
+grep -i "sshd" "$LOG" | grep -i "Accepted password for" > /tmp/login-sshd.txt
+
+sshd_pids=($(ps aux | grep "\[priv\]" | awk '{print $2}'))
+
+for PID in "${sshd_pids[@]}"; do
+    login_info=$(grep "sshd\[$PID\]" /tmp/login-sshd.txt)
+    if [ -n "$login_info" ]; then
+        USER=$(echo "$login_info" | awk '{print $9}')
+        IP=$(echo "$login_info" | awk '{print $11}')
+        echo "$USER $IP" >> /tmp/user_login_ips.txt
+    fi
+done
+
+cat /tmp/user_login_ips.txt | sort | uniq > /tmp/unique_user_login_ips.txt
+users=($(awk '{print $1}' /tmp/unique_user_login_ips.txt | sort | uniq))
+
+for user in "${users[@]}"; do
+    ip_count=$(grep -w "$user" /tmp/unique_user_login_ips.txt | awk '{print $2}' | sort -u | wc -l)
+    echo "User: $user - IP Count: $ip_count"
+    echo "Logged IPs:"
+    grep -w "$user" /tmp/unique_user_login_ips.txt | awk '{print $2}' | sort -u | nl
+    echo ""
+done
+
+if [ -f "/etc/openvpn/server/openvpn-tcp.log" ]; then
+    echo " "
+    grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-tcp.log | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g'
+fi
+
+if [ -f "/etc/openvpn/server/openvpn-udp.log" ]; then
+    echo " "
+    grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-udp.log | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g'
+fi
+
+rm -f /tmp/login-db.txt /tmp/login-sshd.txt /tmp/user_login_ips.txt /tmp/unique_user_login_ips.txt
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-ssh

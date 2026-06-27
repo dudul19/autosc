@@ -1,0 +1,31 @@
+#!/bin/bash
+
+clear
+BOT_DB="/etc/bot/.bot.db"
+
+if [[ ! -f "$BOT_DB" || $(grep -c -E "^#bot# " "$BOT_DB" 2>/dev/null) -eq 0 ]]; then
+    echo "======================================"
+    echo " ❖ Delete Notification Bot"
+    echo "--------------------------------------"
+    echo " You have no existing bot"
+    echo "======================================"
+    echo
+    read -n 1 -s -r -p "Press any key to back"
+    m-bot-notif
+fi
+
+clear
+CHATID=$(awk '/^#bot# / {print $3; exit}' "$BOT_DB" 2>/dev/null)
+KEY=$(awk '/^#bot# / {print $2; exit}' "$BOT_DB" 2>/dev/null)
+sed -i "/^#bot# $KEY $CHATID/d" "$BOT_DB"
+
+clear
+echo "======================================"
+echo " ❖ Delete Notification Bot"
+echo "--------------------------------------"
+echo " Bot Token    : $KEY"
+echo " Telegram ID  : $CHATID"
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+m-bot-notif

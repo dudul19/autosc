@@ -1,0 +1,82 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+    TODAY_DATE=$(date +'%Y-%m-%d')
+    AUTHORIZED_ENTRY=$(curl -sS ${LICENSE} | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo "Permission Accepted (Lifetime User)"
+                echo "Akses Di Izinkan (Pengguna Lifetime)"
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo "Permission Accepted"
+                echo "Akses Di Izinkan"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo "Permission Accepted (Today is Expiry Date)"
+                echo "Akses Di Izinkan (Hari Ini Kadaluarsa)"
+            else
+                echo "Permission Denied (Expired)"
+                echo "Akses Di Tolak (Kadaluarsa)"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo "Permission Denied (IP Mismatch)"
+            echo "Akses Di Tolak (IP Tidak Cocok)"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo "Permission Denied (IP Not Found)"
+        echo "Akses Di Tolak (IP Tidak Ditemukan)"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+PERMISSION
+
+clear
+echo "======================================"
+echo " ❖ SSH Menu"
+echo "--------------------------------------"
+echo " 1.  Create Account"
+echo " 2.  Create Trial Account"
+echo " 3.  Renew Account"
+echo " 4.  Delete Account"
+echo " 5.  Check Login Account"
+echo " 6.  List Account"
+echo " 7.  Delete Expired Account"
+echo " 8.  Lock Account"
+echo " 9.  Unlock Account"
+echo " 10. List Locked Account"
+echo " 11. Detail Account"
+echo " 12. Change Limit IP"
+echo " 13. Change Limit Quota"
+echo " x.  Exit"
+echo "======================================"
+echo
+read -p "Enter your option [1-13 or x] : " opt
+case $opt in
+1) clear ; addssh ;;
+2) clear ; trialssh ;;
+3) clear ; renewssh ;;
+4) clear ; delssh ;;
+5) clear ; cek-loginssh ;;
+6) clear ; listuserssh ;;
+7) clear ; delexp ;;
+8) clear ; lockssh ;;
+9) clear ; unlockssh ;;
+10) clear ; list-lockssh ;;
+11) clear ; userssh ;;
+12) clear ; changeip-ssh ;;
+13) clear ; changequota-ssh ;;
+x) clear ; menu ;;
+*) echo "You pressed it wrong!" ; sleep 1 ; m-ssh ;;
+esac

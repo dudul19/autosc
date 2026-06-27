@@ -1,0 +1,15 @@
+#!/bin/bash
+user="$1"
+CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
+KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+URL="https://api.telegram.org/bot$KEY/sendMessage"
+TEXT="
+<b>=========</b>
+<b>❖ NOTIFICATION</b>
+<b>=========</b>
+<b>Protocol    :</b> SSH
+<b>User        :</b> <code>${user}</code>
+<b>Status      :</b> <code>Has been unlocked</code>
+<b>=========</b>
+"
+curl -s --max-time 10 -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" "$URL" >/dev/null

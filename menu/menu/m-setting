@@ -1,0 +1,92 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+    TODAY_DATE=$(date +'%Y-%m-%d')
+    AUTHORIZED_ENTRY=$(curl -sS ${LICENSE} | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+echo "======================================"
+echo " ❖ Miscellaneous Menu"
+echo "--------------------------------------"
+echo " 1.  Change Xray UUID"
+echo " 2.  Install UDP Custom"
+echo " 3.  Setup Reboot Time"
+echo " 4.  Setup Auto Reboot"
+echo " 5.  Check Running Service"
+echo " 6.  Setup Multilogin"
+echo " 7.  Check RAM & CPU"
+#echo " 8.  Install ZiVPN"
+echo " 8.  Service Port"
+echo " 9.  Rebuild VPS"
+echo " 10. Trial Xray Menu"
+echo " 11. Fix Nginx"
+echo " 12. Bandwidth Monitor"
+echo " 13. Change Dropbear"
+echo " 14. Change Domain"
+echo " 15. Change Banner"
+echo " 16. Restart Service"
+echo " 17. Warp Cloudflare"
+echo " x.  Exit"
+echo "======================================"
+echo 
+read -p "Enter your option [1-17 or x] : " opt
+case $opt in
+1) clear ; ganti-id ;;
+2) clear ; install-udp ; read -p "Press enter Back To Menu" ; m-setting ;;
+3) clear ; setupreboot ;;
+4) clear ; autoreboot ;;
+5) clear ; run ;;
+6) clear ; m-mulog ;;
+7) clear ; htop ; read -n 1 -s -r -p "Press any key to back" ; m-setting ;;
+#8) clear ; wget -q ${REPO}zivpn/install.sh && chmod +x install.sh && install.sh && rm -rf install.sh ;;
+8) clear ; prot ;;
+9) clear ; m-rebuild ;;
+10) clear ; m-trial ;;
+11) clear ; fix-nginx ;;
+12) clear ; bw ;;
+13) clear ; m-dropbear ; read -n 1 -s -r -p "Press any key to back" ; m-setting ;;
+14) clear ; m-domain ;;
+15) clear ; nano /etc/banner-ssh.txt ; read -n 1 -s -r -p "Press any key to back" ; m-setting ;;
+16) clear ; restart ;;
+17) clear ; m-warp ;;
+x) clear ; menu ;;
+*) echo "You pressed it wrong!" ; sleep 0.5 ; m-setting ;;
+esac

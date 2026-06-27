@@ -1,0 +1,62 @@
+#!/bin/bash
+clear
+source /usr/local/sbin/nuclear
+
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+    TODAY_DATE=$(date +'%Y-%m-%d')
+    AUTHORIZED_ENTRY=$(curl -sS ${LICENSE} | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+PERMISSION
+
+clear
+echo "======================================"
+echo " ❖ Setup Regist Bot"
+echo "--------------------------------------"
+echo " 1.  Install Bot"
+echo " 2.  Delete Bot"
+echo " 3.  Add Admin Register"
+echo " x.  Exit"
+echo "======================================"
+echo
+read -p "Enter your option [1-3 or x] : " opt
+case $opt in
+1) clear ; ghalih ;;
+2) clear ; hapus-ghalih ;;
+3) clear ; add-admin ;;
+x) clear ; m-bot ;;
+*) echo "You pressed it wrong!" ; sleep 1 ; m-regis ;;
+esac

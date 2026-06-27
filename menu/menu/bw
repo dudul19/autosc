@@ -1,0 +1,163 @@
+#!/bin/bash
+clear
+echo "======================================"
+echo " ❖ Bandwidth Monitor Menu"
+echo "--------------------------------------"
+echo " 1.  View Total Remaining Bandwidth"
+echo " 2.  View Usage Table Every 5 Minutes"
+echo " 3.  View Usage Table Every Hour"
+echo " 4.  View Usage Table Every Day"
+echo " 5.  View Usage Table Every Month"
+echo " 6.  View Usage Table Every Year"
+echo " 7.  View Highest Usage Table"
+echo " 8.  Hourly Usage Statistics"
+echo " 9.  View Current Active Usage"
+echo " 10. View Current Active Traffic Usage"
+echo " x.  Exit"
+echo "======================================"
+echo
+read -p "Enter your option [1-10 or x] : " opt
+case $opt in
+1)
+clear 
+echo "======================================"
+echo " ❖ Total Server Bandwidth Remaining"
+echo "--------------------------------------"
+echo
+vnstat
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+2)
+clear
+echo "======================================"
+echo " ❖ Total Server Bandwidth Every 5 Min"
+echo "--------------------------------------"
+echo
+vnstat -5
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+3)
+clear 
+echo "======================================"
+echo " ❖ Total Server Bandwidth Every Hour"
+echo "--------------------------------------"
+echo
+vnstat -h
+echo 
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+4)
+clear 
+echo "======================================"
+echo " ❖ Total Server Bandwidth Every Day"
+echo "--------------------------------------"
+echo
+vnstat -d
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+5)
+clear 
+echo "======================================"
+echo " ❖ Total Server Bandwidth Every Month"
+echo "--------------------------------------"
+echo
+vnstat -m
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+6)
+clear 
+echo "======================================"
+echo " ❖ Total Server Bandwidth Every Year"
+echo "--------------------------------------"
+echo
+vnstat -y
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+7)
+clear 
+echo "======================================"
+echo " ❖ Highest Total Server Bandwidth"
+echo "--------------------------------------"
+echo
+vnstat -t
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+8)
+clear 
+echo "======================================"
+echo " ❖ Hourly Used Statictic"
+echo "--------------------------------------"
+echo
+vnstat -hg
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+9)
+clear 
+echo "======================================"
+echo " ❖ Current Live Bandwidth"
+echo "--------------------------------------"
+echo
+vnstat -l
+echo 
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+10)
+clear 
+echo "======================================"
+echo " ❖ Live Traffic Using Bandwidth"
+echo "--------------------------------------"
+echo
+vnstat -tr
+echo
+echo "======================================"
+echo
+read -n 1 -s -r -p "Press any key to back"
+bw
+;;
+
+x) clear ; m-setting ;;
+*) echo -e "You pressed it wrong!" ; sleep 1 ; bw ;;
+esac
